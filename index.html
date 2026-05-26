@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThreatScan | Enterprise Threat Analysis</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <ul class="nav-left">
+      <li><a href="#" class="logo">ThreatScan</a></li>
+      <li><a href="#" class="nav-link active">Analyzer</a></li>
+    </ul>
+    <ul class="nav-right">
+      <li><div class="theme-switch" id="themeSwitch">
+        <button class="theme-opt" data-mode="light" title="Light">
+          <svg class="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="2.5"/>
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+          </svg>
+        </button>
+        <button class="theme-opt" data-mode="system" title="System">
+          <svg class="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1.5" y="2.5" width="13" height="9" rx="1"/>
+            <path d="M5.5 12.5h5M8 11.5v1"/>
+          </svg>
+        </button>
+        <button class="theme-opt" data-mode="dark" title="Dark">
+          <svg class="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13.5 9.5A6.5 6.5 0 0 1 6.5 2.5 6.5 6.5 0 1 0 13.5 9.5z"/>
+          </svg>
+        </button>
+      </div></li>
+      <li><a href="#" class="nav-link" id="historyLink">History</a></li>
+      <li class="profile-item">
+        <div class="profile-trigger" id="profileTrigger">
+          <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/>
+          </svg>
+          <div class="profile-dropdown">
+            <div class="dropdown-email">demo@threatscan.io</div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-btn" id="logoutBtn">Log out</button>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <div class="history-popup" id="historyPopup">
+    <div class="history-popup-header">
+      <span>Analysis History</span>
+      <button class="history-popup-close" id="historyPopupClose">&times;</button>
+    </div>
+    <div class="history-popup-list" id="historyList"></div>
+    <div class="history-popup-empty" id="historyEmpty">No analysis history yet.</div>
+  </div>
+</nav>
+
+<section class="hero" id="heroSection">
+  <div class="hero-content">
+    <h1 class="hero-title">Analyze a Threat Message</h1>
+    <p class="hero-subtitle">Enter the suspicious message details for a comprehensive AI-powered security analysis with deep reasoning.</p>
+
+    <form class="analyze-form" id="analyzeForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sender / Phone / URL</label>
+          <input type="text" placeholder="Enter sender email, phone, or URL" id="sender">
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" placeholder="Message subject line" id="subject">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Message Type</label>
+        <select id="msgType">
+          <option value="Email">Email</option>
+          <option value="SMS">SMS</option>
+          <option value="Social Media">Social Media</option>
+          <option value="Website">Website</option>
+          <option value="Document">Document</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Message Content</label>
+        <textarea id="messageInput" placeholder="Paste the suspicious message here..." required></textarea>
+      </div>
+      <button type="submit" class="analyze-btn" id="analyzeBtn">
+        <span id="btnText">Analyze Threat</span>
+        <span class="spinner" id="spinner" style="display:none"></span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<section class="results-section" id="resultsSection" style="display:none"></section>
+
+<footer class="footer">
+  <p>ThreatScan &mdash; Enterprise AI Threat Analysis Platform</p>
+</footer>
+
+<script>
+/* ── Theme Switch (3-mode: light / system / dark) ── */
+(function() {
+  const opts = document.querySelectorAll('.theme-opt');
+  const STORAGE_KEY = 'theme-mode';
+
+  function applyTheme(mode) {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = mode === 'dark' || (mode === 'system' && prefersDark);
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+
+  function setActive(mode) {
+    opts.forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+  }
+
+  function init() {
+    const saved = localStorage.getItem(STORAGE_KEY) || 'system';
+    applyTheme(saved);
+    setActive(saved);
+
+    opts.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const mode = this.dataset.mode;
+        localStorage.setItem(STORAGE_KEY, mode);
+        applyTheme(mode);
+        setActive(mode);
+      });
+    });
+
+    // Listen for system preference changes when in 'system' mode
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+      const current = localStorage.getItem(STORAGE_KEY) || 'system';
+      if (current === 'system') applyTheme('system');
+    });
+  }
+
+  init();
+})();
+
+/* ── Analysis ── */
+const form = document.getElementById('analyzeForm');
+const btn = document.getElementById('analyzeBtn');
+const btnText = document.getElementById('btnText');
+const spinner = document.getElementById('spinner');
+const resultsSection = document.getElementById('resultsSection');
+const heroSection = document.getElementById('heroSection');
+
+/* ── History Management (localStorage) ── */
+const HISTORY_KEY = 'threatHistory';
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveToHistory(entry) {
+  const history = getHistory();
+  history.unshift(entry);
+  if (history.length > 50) history.length = 50;
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+function renderHistoryPopup() {
+  const list = document.getElementById('historyList');
+  const empty = document.getElementById('historyEmpty');
+  const history = getHistory();
+
+  if (history.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.innerHTML = history.map((item, i) => {
+    let riskChar = '?';
+    try {
+      const m = item.responseText.match(/\{[\s\S]*\}/);
+      if (m) { const p = JSON.parse(m[0]); riskChar = (p.risk_level || 'N/A').charAt(0); }
+    } catch (e) {}
+    const t = new Date(item.timestamp);
+    const ts = t.toLocaleString(void 0, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const preview = item.content.substring(0, 60) + (item.content.length > 60 ? '...' : '');
+    const subj = item.subject || '(no subject)';
+    return `<div class="history-item" data-idx="${i}">
+      <div class="history-item-risk"><span class="risk-dot">${riskChar}</span></div>
+      <div class="history-item-body">
+        <div class="history-item-subject">${escapeHtml(subj)}</div>
+        <div class="history-item-message">${escapeHtml(preview)}</div>
+        <div class="history-item-time">${ts}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', function() {
+      const history = getHistory();
+      const item = history[parseInt(this.dataset.idx)];
+      if (item) restoreHistoryItem(item);
+      closeHistoryPopup();
+    });
+  });
+}
+
+function restoreHistoryItem(item) {
+  resultsSection.style.display = 'block';
+  heroSection.scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' }), 100);
+  if (item.reasoningText) renderThinking(item.reasoningText);
+  if (item.responseText) renderResults(item.responseText, item.reasoningText || '');
+}
+
+function closeHistoryPopup() { document.getElementById('historyPopup').classList.remove('open'); }
+
+function toggleHistoryPopup() {
+  const popup = document.getElementById('historyPopup');
+  if (popup.classList.contains('open')) { closeHistoryPopup(); return; }
+  renderHistoryPopup();
+  popup.classList.add('open');
+}
+
+/* ── Close history popup when clicking outside ── */
+document.addEventListener('click', function(e) {
+  const popup = document.getElementById('historyPopup');
+  const link = document.getElementById('historyLink');
+  if (popup.classList.contains('open') && !popup.contains(e.target) && e.target !== link && !link.contains(e.target)) {
+    closeHistoryPopup();
+  }
+});
+
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3000);
+}
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const content = document.getElementById('messageInput').value.trim();
+  if (!content) {
+    document.getElementById('messageInput').focus();
+    return;
+  }
+
+  // Show toast if optional fields are missing
+  const senderVal = document.getElementById('sender').value.trim();
+  const subjectVal = document.getElementById('subject').value.trim();
+  if (!senderVal || !subjectVal) {
+    showToast();
+  }
+
+  // Disable form
+  btn.disabled = true;
+  btnText.textContent = 'Analyzing';
+  spinner.style.display = 'block';
+
+  const payload = {
+    sender: senderVal,
+    subject: subjectVal,
+    msgType: document.getElementById('msgType').value,
+    content: content
+  };
+
+  // Show loading state
+  resultsSection.style.display = 'block';
+  resultsSection.innerHTML = `
+    <div class="loading-text">
+      Running AI analysis
+      <span class="loading-dots">
+        <span></span><span></span><span></span>
+      </span>
+    </div>
+  `;
+  window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' });
+
+  let reasoningText = '';
+  let responseText = '';
+  let resolvePromise;
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const dataStr = line.substring(6);
+        try {
+          const data = JSON.parse(dataStr);
+
+          if (data.type === 'reasoning') {
+            reasoningText += data.content;
+            renderThinking(reasoningText);
+          } else if (data.type === 'content') {
+            responseText += data.content;
+            renderResults(responseText, reasoningText);
+          } else if (data.type === 'done') {
+            reasoningText = data.reasoning || reasoningText;
+            responseText = data.content || responseText;
+            renderResults(responseText, reasoningText);
+            finalize();
+          } else if (data.type === 'error') {
+            throw new Error(data.content);
+          }
+        } catch (e) {
+          if (e.message.startsWith('Server error') || e.message.startsWith('Failed')) {
+            throw e;
+          }
+        }
+      }
+    }
+
+    if (responseText) {
+      finalize();
+    }
+
+  } catch (err) {
+    resultsSection.innerHTML = `
+      <div class="error-message">
+        Analysis failed: ${err.message}
+      </div>
+      <button class="new-analysis-btn" onclick="resetForm()">Try Again</button>
+    `;
+  }
+
+  function finalize() {
+    // Save to history (localStorage)
+    saveToHistory({
+      timestamp: new Date().toISOString(),
+      sender: payload.sender,
+      subject: payload.subject,
+      msgType: payload.msgType,
+      content: payload.content,
+      reasoningText: reasoningText,
+      responseText: responseText
+    });
+
+    // Enable form
+    btn.disabled = false;
+    btnText.textContent = 'Analyze Threat';
+    spinner.style.display = 'none';
+
+    // Add new analysis button
+    const btnContainer = document.createElement('div');
+    btnContainer.innerHTML = '<button class="new-analysis-btn" onclick="resetForm()">New Analysis</button>';
+    resultsSection.appendChild(btnContainer.firstElementChild);
+  }
+});
+
+function renderThinking(text) {
+  let section = document.getElementById('thinkingSection');
+  let content = document.getElementById('thinkingContent');
+
+  if (!section) {
+    const s = document.createElement('div');
+    s.id = 'thinkingSection';
+    s.className = 'thinking-section';
+    s.innerHTML = `
+      <div class="thinking-header" id="thinkingHeader">
+        <span class="thinking-dot"></span>
+        <span class="thinking-dot"></span>
+        <span class="thinking-dot"></span>
+        AI Reasoning
+      </div>
+      <div class="thinking-content" id="thinkingContent"></div>
+    `;
+    resultsSection.insertBefore(s, resultsSection.firstChild);
+
+    s.querySelector('.thinking-header').addEventListener('click', function() {
+      const c = document.getElementById('thinkingContent');
+      c.classList.toggle('collapsed');
+    });
+
+    content = document.getElementById('thinkingContent');
+  }
+
+  content.textContent = text.replace(/^[\s\S]*?(\{)/, '$1');
+
+  // Auto scroll to show reasoning
+  window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' });
+}
+
+function renderResults(responseText, reasoningText) {
+  let parsed = null;
+  try {
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      parsed = JSON.parse(jsonMatch[0]);
+    }
+  } catch (e) { /* not valid JSON */ }
+
+  // Show what we have so far next to or in the results
+  let html = '';
+
+  // Try to parse structured output
+  if (parsed && parsed.risk_level) {
+    const risk = parsed.risk_level;
+    const threats = parsed.threat_types || [];
+    const analysis = parsed.analysis || responseText;
+    const indicators = parsed.indicators || [];
+    const actions = parsed.recommended_actions || [];
+    const legal = parsed.legal_references || [];
+    const confidence = parsed.confidence_score || 0;
+
+    html += `<div class="analysis-header">
+      <h2>Analysis Complete</h2>
+      <span class="risk-badge">${risk.toUpperCase()}</span>
+    </div>`;
+
+    if (confidence > 0) {
+      html += `<div class="confidence-bar-wrapper">
+        <div class="confidence-bar-label">
+          <span>Confidence Score</span>
+          <span>${confidence}%</span>
+        </div>
+        <div class="confidence-bar">
+          <div class="confidence-bar-fill" style="width:${confidence}%"></div>
+        </div>
+      </div>`;
+    }
+
+    if (threats.length) {
+      html += `<div class="threat-tags">${threats.map(t => `<span class="threat-tag">${t}</span>`).join('')}</div>`;
+    }
+
+    html += `<div class="analysis-card">
+      <h3>Analysis</h3>
+      <p>${analysis}</p>
+    </div>`;
+
+    if (indicators.length) {
+      html += `<div class="analysis-card">
+        <h3>Indicators Detected</h3>
+        <ul>${indicators.map(i => `<li>${i}</li>`).join('')}</ul>
+      </div>`;
+    }
+
+    if (actions.length) {
+      html += `<div class="analysis-card">
+        <h3>Recommended Actions</h3>
+        <ul>${actions.map(a => `<li>${a}</li>`).join('')}</ul>
+      </div>`;
+    }
+
+    if (legal.length) {
+      html += `<div class="analysis-card">
+        <h3>Legal References</h3>
+        <ul>${legal.map(l => `<li>${l}</li>`).join('')}</ul>
+      </div>`;
+    }
+  } else {
+    // Raw response display
+    const cleanText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    html += `<div class="analysis-header">
+      <h2>Analysis Complete</h2>
+    </div>`;
+    html += `<div class="analysis-card">
+      <h3>Raw Analysis</h3>
+      <div style="white-space:pre-wrap;font-size:0.85rem;line-height:1.7">${escapeHtml(cleanText)}</div>
+    </div>`;
+  }
+
+  resultsSection.innerHTML = html;
+
+  // Re-attach thinking section
+  const existingThinking = document.getElementById('thinkingSection');
+  if (existingThinking) {
+    resultsSection.insertBefore(existingThinking, resultsSection.firstChild);
+    document.getElementById('thinkingContent').textContent = reasoningText;
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function resetForm() {
+  document.getElementById('messageInput').value = '';
+  resultsSection.style.display = 'none';
+  resultsSection.innerHTML = '';
+  heroSection.scrollIntoView({ behavior: 'smooth' });
+  btn.disabled = false;
+  btnText.textContent = 'Analyze Threat';
+  spinner.style.display = 'none';
+}
+
+/* ── History link toggle ── */
+document.getElementById('historyLink').addEventListener('click', function(e) {
+  e.preventDefault();
+  toggleHistoryPopup();
+});
+
+/* ── Close history popup button ── */
+document.getElementById('historyPopupClose').addEventListener('click', closeHistoryPopup);
+
+/* ── Profile dropdown logout ── */
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  alert('Logged out (demo)');
+});
+</script>
+
+<div class="toast" id="toast">
+  <div class="toast-icon">i</div>
+  <div class="toast-body">
+    <div class="toast-title">Optional Fields</div>
+    <div class="toast-message">Fill in sender, subject, and message type for a more precise threat analysis.</div>
+  </div>
+</div>
+
+</body>
+</html>
