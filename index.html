@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ThreatScan | Enterprise Threat Analysis</title>
+  <title>ScanForge</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,12 @@
 <nav class="navbar">
   <div class="container">
     <ul class="nav-left">
-      <li><a href="#" class="logo">ThreatScan</a></li>
-      <li><a href="#" class="nav-link active">Analyzer</a></li>
+      <li><a href="#" class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+        ScanForge</a></li>
     </ul>
     <ul class="nav-right">
       <li><div class="theme-switch" id="themeSwitch">
@@ -56,7 +60,10 @@
   <div class="history-popup" id="historyPopup">
     <div class="history-popup-header">
       <span>Analysis History</span>
-      <button class="history-popup-close" id="historyPopupClose">&times;</button>
+      <div class="history-header-actions">
+        <button class="history-clear-btn" id="historyClearBtn">Clear All</button>
+        <button class="history-popup-close" id="historyPopupClose">&times;</button>
+      </div>
     </div>
     <div class="history-popup-list" id="historyList"></div>
     <div class="history-popup-empty" id="historyEmpty">No analysis history yet.</div>
@@ -64,48 +71,103 @@
 </nav>
 
 <section class="hero" id="heroSection">
-  <div class="hero-content">
-    <h1 class="hero-title">Analyze a Threat Message</h1>
-    <p class="hero-subtitle">Enter the suspicious message details for a comprehensive AI-powered security analysis with deep reasoning.</p>
+  <div class="main-layout">
+    <div class="progress-panel" id="progressPanel">
+      <div class="progress-steps">
+        <div class="progress-step" id="stepInput" data-step="1">
+          <div class="step-indicator">1</div>
+          <div class="step-body">
+            <div class="step-title">Input Received</div>
+            <div class="step-detail" id="stepInputDetail"></div>
+          </div>
+        </div>
+        <div class="progress-step" id="stepProcessing" data-step="2">
+          <div class="step-indicator">2</div>
+          <div class="step-body">
+            <div class="step-title">Processing</div>
+            <div class="step-status" id="processingStatus">
+              <div class="processing-anim"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-step" id="stepGenerating" data-step="3">
+          <div class="step-indicator">3</div>
+          <div class="step-body">
+            <div class="step-title">Generating Output</div>
+            <div class="step-status" id="generatingStatus">
+              <div class="gen-bar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-step" id="stepComplete" data-step="4">
+          <div class="step-indicator">4</div>
+          <div class="step-body">
+            <div class="step-title">Analysis Complete</div>
+            <div class="step-status" id="completeStatus"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <form class="analyze-form" id="analyzeForm">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Sender / Phone / URL</label>
-          <input type="text" placeholder="Enter sender email, phone, or URL" id="sender">
-        </div>
-        <div class="form-group">
-          <label>Subject</label>
-          <input type="text" placeholder="Message subject line" id="subject">
-        </div>
+    <div class="content-panel">
+      <div class="form-container">
+        <h1 class="hero-title">Analyze a Threat Message</h1>
+        <p class="hero-subtitle">Enter the suspicious message details for a comprehensive AI-powered security analysis with deep reasoning.</p>
+
+        <form class="analyze-form" id="analyzeForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sender / Phone / URL</label>
+              <input type="text" placeholder="Enter sender email, phone, or URL" id="sender">
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <input type="text" placeholder="Message subject line" id="subject">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Message Type</label>
+            <select id="msgType">
+              <option value="Email">Email</option>
+              <option value="SMS">SMS</option>
+              <option value="Social Media">Social Media</option>
+              <option value="Website">Website</option>
+              <option value="Document">Document</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message Content</label>
+            <textarea id="messageInput" placeholder="Paste the suspicious message here..." required></textarea>
+          </div>
+          <button type="submit" class="analyze-btn" id="analyzeBtn">
+            <span id="btnText">Analyze Threat</span>
+            <span class="spinner" id="spinner" style="display:none"></span>
+          </button>
+        </form>
       </div>
-      <div class="form-group">
-        <label>Message Type</label>
-        <select id="msgType">
-          <option value="Email">Email</option>
-          <option value="SMS">SMS</option>
-          <option value="Social Media">Social Media</option>
-          <option value="Website">Website</option>
-          <option value="Document">Document</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Message Content</label>
-        <textarea id="messageInput" placeholder="Paste the suspicious message here..." required></textarea>
-      </div>
-      <button type="submit" class="analyze-btn" id="analyzeBtn">
-        <span id="btnText">Analyze Threat</span>
-        <span class="spinner" id="spinner" style="display:none"></span>
-      </button>
-    </form>
+
+      <div class="section-divider"></div>
+
+      <div class="results-container" id="resultsSection" style="display:none"></div>
+    </div>
   </div>
 </section>
 
-<section class="results-section" id="resultsSection" style="display:none"></section>
-
 <footer class="footer">
-  <p>ThreatScan &mdash; Enterprise AI Threat Analysis Platform</p>
+  <p>ScanForge &mdash; Enterprise AI Threat Analysis Platform</p>
 </footer>
+
+<div class="modal-overlay" id="threatModal">
+  <div class="modal-box">
+    <div class="modal-icon">&#9888;</div>
+    <h3 class="modal-title">High Threat Detected</h3>
+    <p class="modal-text">This message has been classified as a potential threat. We recommend reporting it to the authorities.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
+      <button class="modal-btn modal-btn-report" id="modalReport">Report to Cyber Police</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ── Theme Switch (3-mode: light / system / dark) ── */
@@ -160,6 +222,64 @@ const btnText = document.getElementById('btnText');
 const spinner = document.getElementById('spinner');
 const resultsSection = document.getElementById('resultsSection');
 const heroSection = document.getElementById('heroSection');
+const progressPanel = document.getElementById('progressPanel');
+const steps = {
+  input: document.getElementById('stepInput'),
+  processing: document.getElementById('stepProcessing'),
+  generating: document.getElementById('stepGenerating'),
+  complete: document.getElementById('stepComplete')
+};
+
+function activateStep(stepEl) {
+  Object.values(steps).forEach(s => s.classList.remove('active'));
+  stepEl.classList.add('active');
+  let p = stepEl.previousElementSibling;
+  while (p) { p.classList.add('done'); p = p.previousElementSibling; }
+}
+
+function completeStep(stepEl) {
+  stepEl.classList.remove('active');
+  stepEl.classList.add('done');
+  const next = stepEl.nextElementSibling;
+  if (next) next.classList.add('active');
+}
+
+function resetSteps() {
+  Object.values(steps).forEach(s => s.classList.remove('active', 'done'));
+  document.getElementById('stepInputDetail').innerHTML = '';
+  document.getElementById('completeStatus').innerHTML = '';
+}
+
+/* ── Live input preview in step 1 ── */
+function updateInputPreview() {
+  const content = document.getElementById('messageInput').value.trim();
+  const senderVal = document.getElementById('sender').value.trim();
+  const subjectVal = document.getElementById('subject').value.trim();
+  const stepDetail = document.getElementById('stepInputDetail');
+  if (content || senderVal || subjectVal) {
+    let preview = content.length > 80 ? content.substring(0, 80) + '...' : content;
+    stepDetail.innerHTML =
+      `<div class="input-meta">${escapeHtml(senderVal || '(no sender)')} &middot; ${escapeHtml(subjectVal || '(no subject)')}</div>` +
+      `<div class="input-text">${escapeHtml(preview || '(no content)')}</div>`;
+  } else {
+    stepDetail.innerHTML = '<div class="input-text" style="color:var(--text-muted)">Awaiting input...</div>';
+  }
+}
+document.getElementById('messageInput').addEventListener('input', updateInputPreview);
+document.getElementById('sender').addEventListener('input', updateInputPreview);
+document.getElementById('subject').addEventListener('input', updateInputPreview);
+
+/* ── Activate step 1 on load ── */
+activateStep(steps.input);
+updateInputPreview();
+
+/* ── Enter key submits the form (Shift+Enter for newline) ── */
+document.getElementById('messageInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.dispatchEvent(new Event('submit'));
+  }
+});
 
 /* ── History Management (localStorage) ── */
 const HISTORY_KEY = 'threatHistory';
@@ -179,14 +299,17 @@ function saveToHistory(entry) {
 function renderHistoryPopup() {
   const list = document.getElementById('historyList');
   const empty = document.getElementById('historyEmpty');
+  const clearBtn = document.getElementById('historyClearBtn');
   const history = getHistory();
 
   if (history.length === 0) {
     list.innerHTML = '';
     empty.style.display = 'flex';
+    clearBtn.style.display = 'none';
     return;
   }
 
+  clearBtn.style.display = 'inline-flex';
   empty.style.display = 'none';
   list.innerHTML = history.map((item, i) => {
     let riskChar = '?';
@@ -220,11 +343,40 @@ function renderHistoryPopup() {
 
 function restoreHistoryItem(item) {
   resultsSection.style.display = 'block';
+  resetSteps();
   heroSection.scrollIntoView({ behavior: 'smooth' });
   setTimeout(() => window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' }), 100);
-  if (item.reasoningText) renderThinking(item.reasoningText);
-  if (item.responseText) renderResults(item.responseText, item.reasoningText || '');
+  if (item.responseText) renderResults(item.responseText);
 }
+
+function clearHistory() {
+  const list = document.getElementById('historyList');
+  const items = list.querySelectorAll('.history-item');
+
+  if (items.length === 0) {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistoryPopup();
+    return;
+  }
+
+  items.forEach((el, i) => {
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-20px)';
+    }, i * 60);
+  });
+
+  setTimeout(() => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistoryPopup();
+  }, items.length * 60 + 300);
+}
+
+document.getElementById('historyClearBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  clearHistory();
+});
 
 function closeHistoryPopup() { document.getElementById('historyPopup').classList.remove('open'); }
 
@@ -252,8 +404,11 @@ function showToast() {
   }, 3000);
 }
 
+let outputStarted = false;
+
 form.addEventListener('submit', async function(e) {
   e.preventDefault();
+  outputStarted = false;
 
   const content = document.getElementById('messageInput').value.trim();
   if (!content) {
@@ -261,14 +416,12 @@ form.addEventListener('submit', async function(e) {
     return;
   }
 
-  // Show toast if optional fields are missing
   const senderVal = document.getElementById('sender').value.trim();
   const subjectVal = document.getElementById('subject').value.trim();
   if (!senderVal || !subjectVal) {
     showToast();
   }
 
-  // Disable form
   btn.disabled = true;
   btnText.textContent = 'Analyzing';
   spinner.style.display = 'block';
@@ -280,32 +433,33 @@ form.addEventListener('submit', async function(e) {
     content: content
   };
 
-  // Show loading state
-  resultsSection.style.display = 'block';
-  resultsSection.innerHTML = `
-    <div class="loading-text">
-      Running AI analysis
-      <span class="loading-dots">
-        <span></span><span></span><span></span>
-      </span>
-    </div>
-  `;
-  window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' });
+  // Step 1: Show input received in progress panel
+  resultsSection.style.display = 'none';
+  resultsSection.innerHTML = '';
+  resetSteps();
+  updateInputPreview();
+  activateStep(steps.input);
 
   let reasoningText = '';
   let responseText = '';
-  let resolvePromise;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Server error: ${res.status}`);
     }
+
+    // Step 2: Processing
+    completeStep(steps.input);
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -326,16 +480,32 @@ form.addEventListener('submit', async function(e) {
           const data = JSON.parse(dataStr);
 
           if (data.type === 'reasoning') {
+            if (!outputStarted) {
+              outputStarted = true;
+              completeStep(steps.processing);
+              resultsSection.style.display = 'block';
+              activateStep(steps.generating);
+            }
             reasoningText += data.content;
-            renderThinking(reasoningText);
           } else if (data.type === 'content') {
+            if (!outputStarted) {
+              outputStarted = true;
+              completeStep(steps.processing);
+              resultsSection.style.display = 'block';
+              activateStep(steps.generating);
+            }
             responseText += data.content;
-            renderResults(responseText, reasoningText);
+            resultsSection.innerHTML = `<div class="streaming-indicator"><div class="streaming-dots"><span></span><span></span><span></span></div>Analyzing threat...</div>`;
           } else if (data.type === 'done') {
+            if (!outputStarted) {
+              outputStarted = true;
+              completeStep(steps.processing);
+              resultsSection.style.display = 'block';
+              activateStep(steps.generating);
+            }
             reasoningText = data.reasoning || reasoningText;
             responseText = data.content || responseText;
-            renderResults(responseText, reasoningText);
-            finalize();
+            renderResults(responseText);
           } else if (data.type === 'error') {
             throw new Error(data.content);
           }
@@ -352,16 +522,16 @@ form.addEventListener('submit', async function(e) {
     }
 
   } catch (err) {
+    const msg = err.name === 'AbortError' ? 'Request timed out after 45s. Try again.' : err.message;
     resultsSection.innerHTML = `
       <div class="error-message">
-        Analysis failed: ${err.message}
+        Analysis failed: ${msg}
       </div>
       <button class="new-analysis-btn" onclick="resetForm()">Try Again</button>
     `;
   }
 
   function finalize() {
-    // Save to history (localStorage)
     saveToHistory({
       timestamp: new Date().toISOString(),
       sender: payload.sender,
@@ -372,52 +542,33 @@ form.addEventListener('submit', async function(e) {
       responseText: responseText
     });
 
-    // Enable form
     btn.disabled = false;
     btnText.textContent = 'Analyze Threat';
     spinner.style.display = 'none';
 
-    // Add new analysis button
+    // Extract risk level and score for the complete step
+    let riskLabel = 'Complete';
+    let riskScore = 0;
+    try {
+      const m = responseText.match(/\{[\s\S]*\}/);
+      if (m) { const p = JSON.parse(m[0]); if (p.risk_level) riskLabel = p.risk_level; if (p.confidence_score != null) riskScore = p.confidence_score; }
+    } catch (e) {}
+    document.getElementById('completeStatus').innerHTML =
+      `<span class="complete-check">${riskLabel.toUpperCase()} ${riskScore}%</span>`;
+
+    if (riskScore >= 70) {
+      document.getElementById('threatModal').classList.add('open');
+    }
+
+    completeStep(steps.generating);
+
     const btnContainer = document.createElement('div');
     btnContainer.innerHTML = '<button class="new-analysis-btn" onclick="resetForm()">New Analysis</button>';
     resultsSection.appendChild(btnContainer.firstElementChild);
   }
 });
 
-function renderThinking(text) {
-  let section = document.getElementById('thinkingSection');
-  let content = document.getElementById('thinkingContent');
-
-  if (!section) {
-    const s = document.createElement('div');
-    s.id = 'thinkingSection';
-    s.className = 'thinking-section';
-    s.innerHTML = `
-      <div class="thinking-header" id="thinkingHeader">
-        <span class="thinking-dot"></span>
-        <span class="thinking-dot"></span>
-        <span class="thinking-dot"></span>
-        AI Reasoning
-      </div>
-      <div class="thinking-content" id="thinkingContent"></div>
-    `;
-    resultsSection.insertBefore(s, resultsSection.firstChild);
-
-    s.querySelector('.thinking-header').addEventListener('click', function() {
-      const c = document.getElementById('thinkingContent');
-      c.classList.toggle('collapsed');
-    });
-
-    content = document.getElementById('thinkingContent');
-  }
-
-  content.textContent = text.replace(/^[\s\S]*?(\{)/, '$1');
-
-  // Auto scroll to show reasoning
-  window.scrollTo({ top: resultsSection.offsetTop - 80, behavior: 'smooth' });
-}
-
-function renderResults(responseText, reasoningText) {
+function renderResults(responseText) {
   let parsed = null;
   try {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -426,35 +577,72 @@ function renderResults(responseText, reasoningText) {
     }
   } catch (e) { /* not valid JSON */ }
 
-  // Show what we have so far next to or in the results
   let html = '';
 
-  // Try to parse structured output
   if (parsed && parsed.risk_level) {
-    const risk = parsed.risk_level;
+    let risk = parsed.risk_level;
     const threats = parsed.threat_types || [];
     const analysis = parsed.analysis || responseText;
     const indicators = parsed.indicators || [];
     const actions = parsed.recommended_actions || [];
     const legal = parsed.legal_references || [];
-    const confidence = parsed.confidence_score || 0;
+    let confidence = parsed.confidence_score || 0;
+
+    // Financial keyword priority enforcement (check content + subject + sender)
+    const msgInput = (document.getElementById('messageInput').value || '').toLowerCase();
+    const subjInput = (document.getElementById('subject').value || '').toLowerCase();
+    const sendInput = (document.getElementById('sender').value || '').toLowerCase();
+    const input = [msgInput, subjInput, sendInput].join(' ');
+    const financialKw = /otp|bank|account|card|upi|payment|transfer|password|pin|cvv|aadhaar|pan\s*card|net\s*banking|credit\s*card|debit\s*card|wallet|refund|invoice|transaction|login|verify|security\s*alert|suspicious\s*activity|limited|blocked|restore\s*access/i;
+    const financialMatches = (input.match(financialKw) || []).length;
+    if (financialMatches >= 1) {
+      if (financialMatches >= 3) {
+        confidence = Math.max(confidence, 85);
+        risk = 'Critical';
+      } else if (financialMatches >= 2) {
+        confidence = Math.max(confidence, 60);
+        if (risk === 'Safe' || risk === 'Low') risk = 'High';
+      } else {
+        confidence = Math.max(confidence, 30);
+        if (risk === 'Safe') risk = 'Medium';
+      }
+    } else {
+      // No financial keywords: cap safe content
+      const hasAnyThreat = /urgent|click|fraud|suspend|reverify|confirm.?identity|ssn|seed.?phrase|private.?key|inheritance|lottery|prize|won|million|billion|cryptocurrency|investment|guaranteed.?return|activate.?link|deactivate|phishing|malware|ransomware|keylogger|trojan|spyware|virus|infected|security.?breach|data.?breach/i.test(input);
+      if (threats.length === 0 && indicators.length === 0 && !hasAnyThreat) {
+        confidence = Math.min(confidence, 8);
+        risk = 'Safe';
+      }
+    }
+
+    // Sender-specific checks (phone number or URL)
+    const susUrl = /https?:\/\/|bit\.ly|tinyurl|shorturl|rb\.gy|\.xyz|\.top|\.ml|\.ga|\.cf/i.test(sendInput);
+    const susPhone = /[+]\d{10,}|0\d{10}|phone|call.*now|missed.call|urgent.*call/i.test(sendInput);
+    if (susUrl || susPhone) {
+      confidence = Math.max(confidence, 50);
+      if (risk === 'Safe' || risk === 'Low') risk = 'Medium';
+    }
+
+    function riskBarColor(pct) {
+      if (pct >= 70) return '#dc2626';
+      if (pct >= 40) return '#f59e0b';
+      return '#16a34a';
+    }
 
     html += `<div class="analysis-header">
       <h2>Analysis Complete</h2>
       <span class="risk-badge">${risk.toUpperCase()}</span>
     </div>`;
 
-    if (confidence > 0) {
-      html += `<div class="confidence-bar-wrapper">
-        <div class="confidence-bar-label">
-          <span>Confidence Score</span>
-          <span>${confidence}%</span>
-        </div>
-        <div class="confidence-bar">
-          <div class="confidence-bar-fill" style="width:${confidence}%"></div>
-        </div>
-      </div>`;
-    }
+    html += `<div class="confidence-bar-wrapper">
+      <div class="confidence-bar-label">
+        <span>Risk Score</span>
+        <span>${confidence}%</span>
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-bar-fill" style="width:${confidence}%;background:${riskBarColor(confidence)}"></div>
+      </div>
+    </div>`;
 
     if (threats.length) {
       html += `<div class="threat-tags">${threats.map(t => `<span class="threat-tag">${t}</span>`).join('')}</div>`;
@@ -485,26 +673,9 @@ function renderResults(responseText, reasoningText) {
         <ul>${legal.map(l => `<li>${l}</li>`).join('')}</ul>
       </div>`;
     }
-  } else {
-    // Raw response display
-    const cleanText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    html += `<div class="analysis-header">
-      <h2>Analysis Complete</h2>
-    </div>`;
-    html += `<div class="analysis-card">
-      <h3>Raw Analysis</h3>
-      <div style="white-space:pre-wrap;font-size:0.85rem;line-height:1.7">${escapeHtml(cleanText)}</div>
-    </div>`;
   }
 
   resultsSection.innerHTML = html;
-
-  // Re-attach thinking section
-  const existingThinking = document.getElementById('thinkingSection');
-  if (existingThinking) {
-    resultsSection.insertBefore(existingThinking, resultsSection.firstChild);
-    document.getElementById('thinkingContent').textContent = reasoningText;
-  }
 }
 
 function escapeHtml(str) {
@@ -517,6 +688,9 @@ function resetForm() {
   document.getElementById('messageInput').value = '';
   resultsSection.style.display = 'none';
   resultsSection.innerHTML = '';
+  resetSteps();
+  updateInputPreview();
+  activateStep(steps.input);
   heroSection.scrollIntoView({ behavior: 'smooth' });
   btn.disabled = false;
   btnText.textContent = 'Analyze Threat';
@@ -531,6 +705,16 @@ document.getElementById('historyLink').addEventListener('click', function(e) {
 
 /* ── Close history popup button ── */
 document.getElementById('historyPopupClose').addEventListener('click', closeHistoryPopup);
+
+/* ── Threat modal ── */
+document.getElementById('modalCancel').addEventListener('click', function() {
+  document.getElementById('threatModal').classList.remove('open');
+});
+
+document.getElementById('modalReport').addEventListener('click', function() {
+  window.open('https://cybercrime.gov.in/Webform/Accept.aspx', '_blank', 'noopener,noreferrer');
+  document.getElementById('threatModal').classList.remove('open');
+});
 
 /* ── Profile dropdown logout ── */
 document.getElementById('logoutBtn').addEventListener('click', function() {
